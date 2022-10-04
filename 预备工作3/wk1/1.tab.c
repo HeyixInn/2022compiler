@@ -1605,12 +1605,7 @@ int yylex(){
 	int t;
 	t=getchar();
 	if(t>='0' && t<='9'){
-		yylval = 0;
-		while(t>='0' && t<='9'){
-			yylval = yylval * 10 + t - '0';
-			t = getchar();
-		}
-		ungetc(t,stdin);
+		yylval = t - '0';
 		return NUMBER;
 	}
 	else if(t=='+')
