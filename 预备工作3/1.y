@@ -15,9 +15,22 @@ void yyerror(const char* s);
 %}
 
 //优先级 ↓
+
+//运算符
 %token ADD
-%left ADD '-' //所以改成ADD有啥区别啊 改了一下翻译方式？
-%left '*' '/'
+%token SUB
+%token MUL
+%token DIV
+
+//整数
+%token NUMBER
+
+//小括号
+%token l_paren
+%token r_paren
+
+%left ADD SUB //所以改成ADD有啥区别啊 改了一下翻译方式？
+%left MUL DIV
 %right UMINUS //what??
 
 %%
@@ -28,15 +41,15 @@ lines	:	lines expr '\n' { printf("%f\n", $2); }//把这行打出来然后回车�
 		;
 
 expr	:	expr ADD expr { $$ = $1 + $3; }
-		|	expr '-' expr { $$ = $1 - $3; }
-		|	expr '*' expr { $$ = $1 * $3; }
-		|	expr '/' expr { $$ = $1 / $3; }
-		|	'(' expr ')'  { $$ = $2; }
+		|	expr SUB expr { $$ = $1 - $3; }
+		|	expr MUL expr { $$ = $1 * $3; }
+		|	expr DIV expr { $$ = $1 / $3; }
+		|	l_paren expr r_paren  { $$ = $2; }
 		|	'-' expr %prec UMINUS { $$ = -$2; }
-		|	NUMBER
+		|	NUMBER { $$ = $1; }
 		;
 
-NUMBER	:	'0'				{ $$ = 0.0; }
+/*NUMBER	:	'0'				{ $$ = 0.0; }
 		|	'1'				{ $$ = 1.0; }
 		|	'2'				{ $$ = 2.0; }
 		|	'3'				{ $$ = 3.0; }
@@ -47,7 +60,7 @@ NUMBER	:	'0'				{ $$ = 0.0; }
 		|	'8'				{ $$ = 8.0; }
 		|	'9'				{ $$ = 9.0; }
 		;
-
+*/
 %%
 
 //program section
@@ -56,8 +69,27 @@ int yylex(){
 	//return getchar();
 	int t;
 	t=getchar();
-	if(t=='+')
+	if(t>='0' && t<='9'){
+		yylval = 0;
+		while(t>='0' && t<='9'){
+			yylval = yylval * 10 + t - '0';
+			t = getchar();
+		}
+		ungetc(t,stdin);
+		return NUMBER;
+	}
+	else if(t=='+')
 		return ADD;
+	else if(t=='-')
+		return SUB;
+	else if(t=='*')
+		return MUL;
+	else if(t=='/')
+		return DIV;
+	else if(t=='(')
+		return l_paren;
+	else if(t==')')
+		return r_paren;
 	else
 		return t;
 }
