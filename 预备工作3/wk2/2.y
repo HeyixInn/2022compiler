@@ -35,8 +35,8 @@ void yyerror(const char* s);
 
 %%
 
-lines	:	lines expr '\n' { printf("%f\n", $2); }//把这行打出来然后回车？
-		|	lines '\n'
+lines	:	lines expr ';' { printf("%f\n", $2); }//把这行打出来然后回车？
+		|	lines ';'
 		|
 		;
 
@@ -68,30 +68,35 @@ int yylex(){
 	//place your token retricing code here
 	//return getchar();
 	int t;
-	t=getchar();
-	if(t>='0' && t<='9'){
-		yylval = 0;
-		while(t>='0' && t<='9'){
-			yylval = yylval * 10 + t - '0';
-			t = getchar();
+	while(1){
+		t=getchar();
+		if(t==' '||t=='\n'||t=='\t'){
+			//do nothing
 		}
-		ungetc(t,stdin);
-		return NUMBER;
+		else if(t>='0' && t<='9'){
+			yylval = 0;
+			while(t>='0' && t<='9'){
+				yylval = yylval * 10 + t - '0';
+				t = getchar();
+			}
+			ungetc(t,stdin);
+			return NUMBER;
+		}
+		else if(t=='+')
+			return ADD;
+		else if(t=='-')
+			return SUB;
+		else if(t=='*')
+			return MUL;
+		else if(t=='/')
+			return DIV;
+		else if(t=='(')
+			return l_paren;
+		else if(t==')')
+			return r_paren;
+		else
+			return t;
 	}
-	else if(t=='+')
-		return ADD;
-	else if(t=='-')
-		return SUB;
-	else if(t=='*')
-		return MUL;
-	else if(t=='/')
-		return DIV;
-	else if(t=='(')
-		return l_paren;
-	else if(t==')')
-		return r_paren;
-	else
-		return t;
 }
 
 
