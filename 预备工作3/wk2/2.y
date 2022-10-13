@@ -9,7 +9,7 @@
 
 int yylex();
 extern int yyparse();
-FILE* yyin; //extern加不加 有啥区别？
+FILE* yyin; 
 
 void yyerror(const char* s);
 %}
