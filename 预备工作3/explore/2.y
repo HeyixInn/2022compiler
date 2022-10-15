@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <iostream>
 
 #include <map>
 #ifndef YYSTYPE
@@ -49,27 +50,39 @@ void yyerror(const char* s);
 %left ADD SUB //所以改成ADD有啥区别啊 改了一下翻译方式？
 %left MUL DIV
 %right UMINUS //what??
+%right EQUAL
 
 %%
 
-lines	:	lines expr ';' { printf("%s\n", $2); }//把这行打出来然后回车？
+lines	:	lines statement ';' { printf("%s\n", $2); }//把这行打出来然后回车？
 		|	lines ';'
 		|
 		;
+
+statement	:	ID EQUAL expr{ printf("a equation!"); $$ = (char *)malloc(50*sizeof(char)); $$ = strcpy($$, $3);
+								string tmp = $1;
+								id_val[tmp]=str2int($3);//存表
+								//printf("%d", id_val[$1]);
+						  }//改一下这里
+			|	expr
+			;
 
 expr	:	expr ADD expr { $$ = (char *)malloc(50*sizeof(char)); strcal($1, $3, $$, '+'); }
 		|	expr SUB expr { $$ = (char *)malloc(50*sizeof(char)); strcal($1, $3, $$, '-'); }
 		|	expr MUL expr { $$ = (char *)malloc(50*sizeof(char)); strcal($1, $3, $$, '*'); }
 		|	expr DIV expr { $$ = (char *)malloc(50*sizeof(char)); strcal($1, $3, $$, '/'); }
-		|	ID EQUAL expr { $$ = "a equation!";
-								string tmp = $1;
-								id_val[tmp]=str2int($3);//存表
-								//printf("%d", id_val[$1]);
-						  }//改一下这里
+		|	ID EQUAL expr 
 		|	l_paren expr r_paren  { $$ = (char *)malloc(50*sizeof(char)); $$ = strcpy($$, $2); }
 		|	'-' expr %prec UMINUS { $$ = (char *)malloc(50*sizeof(char)); $$ = "-"; strcat($$, $2); }
 		|	NUMBER { $$ = (char *)malloc(50*sizeof(char)); $$ = strcpy($$, $1);} //malloc太重要了... 一定要深拷贝。
-		|   ID { $$ = (char *)malloc(50*sizeof(char)); string tmp = $1; int2str(id_val[$1], $$); }
+		|   ID { $$ = (char *)malloc(50*sizeof(char)); 
+					if (id_val.find($1) == id_val.end()){
+						$$="";
+					}
+					else{
+						int2str(id_val[$1], $$);
+					}
+				}
 		;
 
 %%
@@ -162,6 +175,7 @@ int yylex(){
 			}
 			idStr[ti]='\0';
 			yylval = idStr;
+			//printf("|%s",idStr);
 			ungetc(t,stdin);
 			return ID;
 		}
