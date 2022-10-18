@@ -36,6 +36,7 @@ void yyerror(const char* s);
 %left ADD SUB //所以改成ADD有啥区别啊 改了一下翻译方式？
 %left MUL DIV
 %right UMINUS //what??
+//%nonassoc UMINUS
 
 %%
 
@@ -48,6 +49,9 @@ expr	:	expr ADD expr { $$ = (char *)malloc(50*sizeof(char)); strcpy($$, $1); str
 		|	expr SUB expr { $$ = (char *)malloc(50*sizeof(char)); strcpy($$, $1); strcat($$, $3); strcat($$,"- "); }
 		|	expr MUL expr { $$ = (char *)malloc(50*sizeof(char)); strcpy($$, $1); strcat($$, $3); strcat($$,"* "); }
 		|	expr DIV expr { $$ = (char *)malloc(50*sizeof(char)); strcpy($$, $1); strcat($$, $3); strcat($$,"/ "); }
+		|	SUB expr %prec UMINUS { $$ = (char *)malloc(50*sizeof(char)); $$ = strcpy($$, "-"); strcat($$, $2); }
+		//添加括号
+		|	l_paren expr r_paren  { $$ = (char *)malloc(50*sizeof(char)); $$ = strcpy($$, $2); }
 		|	NUMBER { $$ = (char *)malloc(50*sizeof(char)); strcpy($$, $1); strcat($$," "); }
 		|	ID { $$ = (char *)malloc(50*sizeof(char)); strcpy($$, $1); strcat($$," "); }
 		;

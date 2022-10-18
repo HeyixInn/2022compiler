@@ -45,7 +45,7 @@ expr	:	expr ADD expr { $$ = $1 + $3; }
 		|	expr MUL expr { $$ = $1 * $3; }
 		|	expr DIV expr { $$ = $1 / $3; }
 		|	l_paren expr r_paren  { $$ = $2; }
-		|	'-' expr %prec UMINUS { $$ = -$2; }
+		|	SUB expr %prec UMINUS { $$ = -$2; }
 		|	NUMBER { $$ = $1; }
 		;
 

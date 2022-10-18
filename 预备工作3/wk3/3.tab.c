@@ -463,16 +463,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  2
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   20
+#define YYLAST   34
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  13
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  10
+#define YYNRULES  12
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  16
+#define YYNSTATES  21
 
 #define YYUNDEFTOK  2
 #define YYMAXUTOK   266
@@ -520,8 +520,8 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    42,    42,    43,    44,    47,    48,    49,    50,    51,
-      52
+       0,    43,    43,    44,    45,    48,    49,    50,    51,    52,
+      54,    55,    56
 };
 #endif
 
@@ -545,7 +545,7 @@ static const yytype_int16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF (-3)
+#define YYPACT_NINF (-5)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -559,8 +559,9 @@ static const yytype_int16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      -3,     0,    -3,    -3,    -3,    -3,    -2,    10,    10,    10,
-      10,    -3,    14,    14,    -3,    -3
+      -5,     0,    -5,    25,    -5,    -5,    25,    -5,    11,    -5,
+      21,    25,    25,    25,    25,    -5,    -5,    -4,    -4,    -5,
+      -5
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -568,20 +569,21 @@ static const yytype_int8 yypact[] =
      means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       4,     0,     1,     9,    10,     3,     0,     0,     0,     0,
-       0,     2,     5,     6,     7,     8
+       4,     0,     1,     0,    11,    12,     0,     3,     0,     9,
+       0,     0,     0,     0,     0,     2,    10,     5,     6,     7,
+       8
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -3,    -3,     6
+      -5,    -5,     7
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-      -1,     1,     6
+      -1,     1,     8
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -589,38 +591,41 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       2,     7,     8,     9,    10,     0,     0,     3,     4,     0,
-      11,     0,     5,    12,    13,    14,    15,     3,     4,     9,
-      10
+       2,    13,    14,     0,     3,     0,     0,     4,     5,     6,
+       9,     0,     7,    10,    11,    12,    13,    14,    17,    18,
+      19,    20,     0,    15,    11,    12,    13,    14,     0,     3,
+       0,    16,     4,     5,     6
 };
 
 static const yytype_int8 yycheck[] =
 {
-       0,     3,     4,     5,     6,    -1,    -1,     7,     8,    -1,
-      12,    -1,    12,     7,     8,     9,    10,     7,     8,     5,
-       6
+       0,     5,     6,    -1,     4,    -1,    -1,     7,     8,     9,
+       3,    -1,    12,     6,     3,     4,     5,     6,    11,    12,
+      13,    14,    -1,    12,     3,     4,     5,     6,    -1,     4,
+      -1,    10,     7,     8,     9
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    14,     0,     7,     8,    12,    15,     3,     4,     5,
-       6,    12,    15,    15,    15,    15
+       0,    14,     0,     4,     7,     8,     9,    12,    15,    15,
+      15,     3,     4,     5,     6,    12,    10,    15,    15,    15,
+      15
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const yytype_int8 yyr1[] =
 {
        0,    13,    14,    14,    14,    15,    15,    15,    15,    15,
-      15
+      15,    15,    15
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     3,     2,     0,     3,     3,     3,     3,     1,
-       1
+       0,     2,     3,     2,     0,     3,     3,     3,     3,     2,
+       3,     1,     1
 };
 
 
@@ -1316,49 +1321,61 @@ yyreduce:
   switch (yyn)
     {
   case 2:
-#line 42 "3.y"
+#line 43 "3.y"
                                { printf("%s\n", yyvsp[-1]); }
-#line 1322 "3.tab.c"
+#line 1327 "3.tab.c"
     break;
 
   case 5:
-#line 47 "3.y"
+#line 48 "3.y"
                               { yyval = (char *)malloc(50*sizeof(char)); strcpy(yyval, yyvsp[-2]); strcat(yyval, yyvsp[0]); strcat(yyval,"+ "); }
-#line 1328 "3.tab.c"
+#line 1333 "3.tab.c"
     break;
 
   case 6:
-#line 48 "3.y"
+#line 49 "3.y"
                                       { yyval = (char *)malloc(50*sizeof(char)); strcpy(yyval, yyvsp[-2]); strcat(yyval, yyvsp[0]); strcat(yyval,"- "); }
-#line 1334 "3.tab.c"
+#line 1339 "3.tab.c"
     break;
 
   case 7:
-#line 49 "3.y"
+#line 50 "3.y"
                                       { yyval = (char *)malloc(50*sizeof(char)); strcpy(yyval, yyvsp[-2]); strcat(yyval, yyvsp[0]); strcat(yyval,"* "); }
-#line 1340 "3.tab.c"
+#line 1345 "3.tab.c"
     break;
 
   case 8:
-#line 50 "3.y"
+#line 51 "3.y"
                                       { yyval = (char *)malloc(50*sizeof(char)); strcpy(yyval, yyvsp[-2]); strcat(yyval, yyvsp[0]); strcat(yyval,"/ "); }
-#line 1346 "3.tab.c"
+#line 1351 "3.tab.c"
     break;
 
   case 9:
-#line 51 "3.y"
-                               { yyval = (char *)malloc(50*sizeof(char)); strcpy(yyval, yyvsp[0]); strcat(yyval," "); }
-#line 1352 "3.tab.c"
+#line 52 "3.y"
+                                              { yyval = (char *)malloc(50*sizeof(char)); yyval = strcpy(yyval, "-"); strcat(yyval, yyvsp[0]); }
+#line 1357 "3.tab.c"
     break;
 
   case 10:
-#line 52 "3.y"
+#line 54 "3.y"
+                                              { yyval = (char *)malloc(50*sizeof(char)); yyval = strcpy(yyval, yyvsp[-1]); }
+#line 1363 "3.tab.c"
+    break;
+
+  case 11:
+#line 55 "3.y"
+                               { yyval = (char *)malloc(50*sizeof(char)); strcpy(yyval, yyvsp[0]); strcat(yyval," "); }
+#line 1369 "3.tab.c"
+    break;
+
+  case 12:
+#line 56 "3.y"
                            { yyval = (char *)malloc(50*sizeof(char)); strcpy(yyval, yyvsp[0]); strcat(yyval," "); }
-#line 1358 "3.tab.c"
+#line 1375 "3.tab.c"
     break;
 
 
-#line 1362 "3.tab.c"
+#line 1379 "3.tab.c"
 
       default: break;
     }
@@ -1590,7 +1607,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 67 "3.y"
+#line 71 "3.y"
 
 
 //program section
@@ -1615,7 +1632,7 @@ int yylex(){
 			ungetc(t,stdin);
 			return NUMBER;
 		}
-		else if((t>='a'&&t<='z')||(t>='A'&&t<='Z')){
+		else if(t=='_'||(t>='a'&&t<='z')||(t>='A'&&t<='Z')){
 			int ti = 0;
 			while((t>='a'&&t<='z')||(t>='A'&&t<='Z')||t=='_'||(t>='0' && t<='9')){
 				idStr[ti] = t;
