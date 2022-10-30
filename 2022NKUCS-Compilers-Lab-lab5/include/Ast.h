@@ -2,6 +2,7 @@
 #define __AST_H__
 
 #include <fstream>
+//全是结点。。一个符号对应一个结点？
 
 class SymbolEntry;
 
@@ -30,7 +31,7 @@ private:
     int op;
     ExprNode *expr1, *expr2;
 public:
-    enum {ADD, SUB, AND, OR, LESS};
+    enum {ADD, SUB, MUL, DIV, MOD, AND, OR, LESS, MORE, EQUAL};
     BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){};
     void output(int level);
 };
@@ -74,8 +75,19 @@ class DeclStmt : public StmtNode
 {
 private:
     Id *id;
+    ExprNode *init;
 public:
-    DeclStmt(Id *id) : id(id){};
+    DeclStmt(Id *id, ExprNode *init=nullptr) : id(id), init(init){};
+    void output(int level);
+};
+
+class AssignStmt : public StmtNode
+{
+private:
+    ExprNode *lval;
+    ExprNode *expr;
+public:
+    AssignStmt(ExprNode *lval, ExprNode *expr) : lval(lval), expr(expr) {};
     void output(int level);
 };
 
@@ -100,22 +112,34 @@ public:
     void output(int level);
 };
 
+class WhileStmt : public StmtNode
+{
+private:
+    ExprNode *cond;
+    StmtNode *thenStmt;
+public:
+    WhileStmt(ExprNode *cond, StmtNode *thenStmt) : cond(cond), thenStmt(thenStmt){};
+    void output(int level);
+};
+
+class ForStmt : public StmtNode
+{
+private:
+    StmtNode *init;//初始化语句
+    ExprNode *judge;//判断条件语句
+    StmtNode *ctrl;//控制语句
+    StmtNode *thenStmt;
+public:
+    ForStmt(StmtNode *init, ExprNode *judge, StmtNode *ctrl, StmtNode *thenStmt) : init(init), judge(judge), ctrl(ctrl), thenStmt(thenStmt){};
+    void output(int level);
+};
+
 class ReturnStmt : public StmtNode
 {
 private:
     ExprNode *retValue;
 public:
     ReturnStmt(ExprNode*retValue) : retValue(retValue) {};
-    void output(int level);
-};
-
-class AssignStmt : public StmtNode
-{
-private:
-    ExprNode *lval;
-    ExprNode *expr;
-public:
-    AssignStmt(ExprNode *lval, ExprNode *expr) : lval(lval), expr(expr) {};
     void output(int level);
 };
 

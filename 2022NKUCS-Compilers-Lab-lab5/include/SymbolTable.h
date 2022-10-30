@@ -69,6 +69,7 @@ public:
     | d        | LOCAL    |
     | e        | LOCAL +1 |
 */
+//没有存值！
 class IdentifierSymbolEntry : public SymbolEntry
 {
 private:

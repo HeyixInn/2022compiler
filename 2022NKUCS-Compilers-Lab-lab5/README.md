@@ -59,3 +59,11 @@ TEST_PATH ?= test/level1-1
     make clean
 ```
 清除所有可执行文件和测试输出。
+
+## hyx_add:
+EOL must do nothing!!
+if 语句
+while 语句
+int a=0;初始化并赋值语句
+
+初始化语句 InitStmt

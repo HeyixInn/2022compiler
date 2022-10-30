@@ -24,14 +24,14 @@
 %start Program
 %token <strtype> ID 
 %token <itype> INTEGER
-%token IF ELSE
+%token IF ELSE WHILE FOR
 %token INT VOID
 %token LPAREN RPAREN LBRACE RBRACE SEMICOLON
-%token ADD SUB OR AND LESS ASSIGN
+%token MUL DIV MOD ADD SUB OR AND LESS MORE EQUAL ASSIGN
 %token RETURN
 
-%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt ReturnStmt DeclStmt FuncDef
-%nterm <exprtype> Exp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp
+%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt WhileStmt ForStmt AssignExpr ReturnStmt DeclStmt FuncDef
+%nterm <exprtype> Exp MulExp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp
 %nterm <type> Type
 
 %precedence THEN
@@ -53,6 +53,8 @@ Stmt
     : AssignStmt {$$=$1;}
     | BlockStmt {$$=$1;}
     | IfStmt {$$=$1;}
+    | WhileStmt {$$=$1;}
+    | ForStmt {$$=$1;}
     | ReturnStmt {$$=$1;}
     | DeclStmt {$$=$1;}
     | FuncDef {$$=$1;}
@@ -77,6 +79,12 @@ AssignStmt
         $$ = new AssignStmt($1, $3);
     }
     ;
+AssignExpr
+    :
+    LVal ASSIGN Exp {
+        $$ = new AssignStmt($1, $3);
+    }
+    ;
 BlockStmt
     :   LBRACE 
         {identifiers = new SymbolTable(identifiers);} 
@@ -95,6 +103,16 @@ IfStmt
     | IF LPAREN Cond RPAREN Stmt ELSE Stmt {
         $$ = new IfElseStmt($3, $5, $7);
     }
+    ;
+WhileStmt
+    : WHILE LPAREN Cond RPAREN Stmt{
+        $$ = new WhileStmt($3, $5);
+    }   
+    ;
+ForStmt
+    : FOR LPAREN AssignExpr SEMICOLON Cond SEMICOLON AssignExpr RPAREN Stmt{
+        $$ = new ForStmt($3, $5, $7, $9);
+    }   
     ;
 ReturnStmt
     :
@@ -120,17 +138,39 @@ PrimaryExp
         $$ = new Constant(se);
     }
     ;
-AddExp
+MulExp
     :
     PrimaryExp {$$ = $1;}
     |
-    AddExp ADD PrimaryExp
+    MulExp MUL PrimaryExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::MUL, $1, $3);
+    }
+    |
+    MulExp DIV PrimaryExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::DIV, $1, $3);
+    }
+    |
+    MulExp MOD PrimaryExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::MOD, $1, $3);
+    }
+    ;
+AddExp
+    :
+    MulExp {$$ = $1;}
+    |
+    AddExp ADD MulExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::ADD, $1, $3);
     }
     |
-    AddExp SUB PrimaryExp
+    AddExp SUB MulExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::SUB, $1, $3);
@@ -144,6 +184,18 @@ RelExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::LESS, $1, $3);
+    }
+    |
+    RelExp MORE AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::MORE, $1, $3);
+    }
+    |
+    RelExp EQUAL AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::EQUAL, $1, $3);
     }
     ;
 LAndExp
@@ -177,11 +229,19 @@ Type
 DeclStmt
     :
     Type ID SEMICOLON {
-        printf("hi");
+        //printf("hi");
         SymbolEntry *se;
         se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
         identifiers->install($2, se);
         $$ = new DeclStmt(new Id(se));
+        delete []$2;
+    }
+    |Type ID ASSIGN Exp SEMICOLON{
+        //应该加一个value值 在entry里也要加
+        SymbolEntry *se;
+        se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
+        identifiers->install($2, se);
+        $$ = new DeclStmt(new Id(se),$4);
         delete []$2;
     }
     ;

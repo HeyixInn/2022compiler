@@ -29,6 +29,15 @@ void BinaryExpr::output(int level)
         case SUB:
             op_str = "sub";
             break;
+        case MUL:
+            op_str = "mul";
+            break;
+        case DIV:
+            op_str = "div";
+            break;
+        case MOD:
+            op_str = "mod";
+            break;
         case AND:
             op_str = "and";
             break;
@@ -37,6 +46,12 @@ void BinaryExpr::output(int level)
             break;
         case LESS:
             op_str = "less";
+            break;
+        case MORE:
+            op_str = "more";
+            break;
+        case EQUAL:
+            op_str = "equal";
             break;
     }
     fprintf(yyout, "%*cBinaryExpr\top: %s\n", level, ' ', op_str.c_str());
@@ -81,6 +96,9 @@ void DeclStmt::output(int level)
 {
     fprintf(yyout, "%*cDeclStmt\n", level, ' ');
     id->output(level + 4);
+    if(init!=nullptr){
+        init->output(level+4);
+    }
 }
 
 void IfStmt::output(int level)
@@ -96,6 +114,21 @@ void IfElseStmt::output(int level)
     cond->output(level + 4);
     thenStmt->output(level + 4);
     elseStmt->output(level + 4);
+}
+
+void WhileStmt::output(int level)
+{
+    fprintf(yyout, "%*cWhileStmt\n", level, ' ');
+    cond->output(level + 4);
+    thenStmt->output(level + 4);
+}
+
+void ForStmt::output(int level)
+{
+    fprintf(yyout, "%*cForStmt\n", level, ' ');
+    init->output(level + 4);
+    judge->output(level + 4);
+    ctrl->output(level + 4);
 }
 
 void ReturnStmt::output(int level)

@@ -22,6 +22,12 @@ DECIMIAL ([1-9][0-9]*|0)
 ID [[:alpha:]_][[:alpha:][:digit:]_]*
 EOL (\r\n|\n|\r)
 WHITE [\t ]
+commentbegin "/*"
+commentelement1 .|\n
+commentelement2 (.)*\n
+commentend "*/"
+%x COMMENT1
+%x COMMENT2
 %x BLOCKCOMMENT
 
 %%
@@ -46,11 +52,26 @@ WHITE [\t ]
         DEBUG_FOR_LAB4("IF\tif");
     return IF;
 };
+"then" {
+    if(dump_tokens)
+            DEBUG_FOR_LAB4("THEN\telse");
+        return THEN;
+}
 "else" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ELSE\telse");
     return ELSE;
-};
+}
+"while" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("ELSE\telse");
+    return WHILE;
+}
+"for" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("FOR\telse");
+    return FOR;
+}
 "return" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("RETURN\treturn");
@@ -69,6 +90,21 @@ WHITE [\t ]
         DEBUG_FOR_LAB4("SUB\t+");
     return SUB;
 }
+"*" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MUL\t+");
+    return MUL;
+}
+"/" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("DIV\t+");
+    return DIV;
+}
+"%" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MOD\t+");
+    return MOD;
+}
 "||" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("OR\t+");
@@ -83,6 +119,16 @@ WHITE [\t ]
     if(dump_tokens)
         DEBUG_FOR_LAB4("LESS\t<");
     return LESS;
+}
+">" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MORE\t<");
+    return MORE;
+}
+"==" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("EQUAL\t<");
+    return EQUAL;
 }
 "=" {
     if(dump_tokens)
@@ -135,6 +181,16 @@ WHITE [\t ]
     yylval.strtype = lexeme;
     return ID;
 }
+
+{commentbegin} {BEGIN COMMENT1;}
+<COMMENT1>{commentelement1} {}
+<COMMENT1>{commentend} {BEGIN INITIAL;}
+"//"    {
+    BEGIN COMMENT2;
+}
+<COMMENT2>{commentelement2} {BEGIN INITIAL;}
+
+
 {EOL} {
     yylineno++;
     //do nothing!!
