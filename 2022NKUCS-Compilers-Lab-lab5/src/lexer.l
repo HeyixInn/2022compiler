@@ -57,26 +57,47 @@ WHITE [\t ]
     return RETURN;
 }
 
-"=" {
+
+
+"+" {
     if(dump_tokens)
-        DEBUG_FOR_LAB4("ASSIGN\t=");
-    return ASSIGN;
+        DEBUG_FOR_LAB4("ADD\t+");
+    return ADD;
+}
+"-" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("SUB\t+");
+    return SUB;
+}
+"||" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("OR\t+");
+    return OR;
+}
+"&&" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("AND\t+");
+    return AND;
 }
 "<" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("LESS\t<");
     return LESS;
 }
-"+" {
+"=" {
     if(dump_tokens)
-        DEBUG_FOR_LAB4("ADD\t+");
-    return ADD;
+        DEBUG_FOR_LAB4("ASSIGN\t=");
+    return ASSIGN;
 }
+
+
+
 ";" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("SEMICOLON\t;");
     return SEMICOLON;
 }
+
 "(" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("LPAREN\t(");
@@ -114,6 +135,11 @@ WHITE [\t ]
     yylval.strtype = lexeme;
     return ID;
 }
-{EOL} yylineno++;
+{EOL} {
+    yylineno++;
+    //do nothing!!
+    //这里return了就什么都打不出来了、、哭
+}
+
 {WHITE}
 %%

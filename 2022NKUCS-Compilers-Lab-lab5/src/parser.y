@@ -40,6 +40,7 @@
 Program
     : Stmts {
         ast.setRoot($1);
+        ast.output();
     }
     ;
 Stmts
@@ -176,6 +177,7 @@ Type
 DeclStmt
     :
     Type ID SEMICOLON {
+        printf("hi");
         SymbolEntry *se;
         se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
         identifiers->install($2, se);

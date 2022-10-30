@@ -1,6 +1,8 @@
 #include "SymbolTable.h"
 #include <iostream>
 #include <sstream>
+#include <map>
+using namespace std;
 
 SymbolEntry::SymbolEntry(Type *type, int kind) 
 {
@@ -70,6 +72,15 @@ SymbolTable::SymbolTable(SymbolTable *prev)
 SymbolEntry* SymbolTable::lookup(std::string name)
 {
     // Todo
+    SymbolTable* tmp=this;
+    map<std::string, SymbolEntry*>::iterator iter;
+    while(tmp!=nullptr){
+        iter=tmp->symbolTable.find(name);
+        if(iter!=tmp->symbolTable.end()){
+            return iter->second;
+        }
+        tmp=tmp->prev;
+    }
     return nullptr;
 }
 
