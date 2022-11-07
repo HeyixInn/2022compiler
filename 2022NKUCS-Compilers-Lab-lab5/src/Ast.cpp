@@ -1,7 +1,10 @@
+#include <iostream>
 #include "Ast.h"
 #include "SymbolTable.h"
 #include <string>
 #include "Type.h"
+
+using namespace std;
 
 extern FILE *yyout;
 int Node::counter = 0;
@@ -53,10 +56,54 @@ void BinaryExpr::output(int level)
         case EQUAL:
             op_str = "equal";
             break;
+        case MORE_E:
+            op_str = "more_than_or_equal";
+            break;
+        case LESS_E:
+            op_str = "less_than_or_equal";
+            break;
+        case NOT_EQUAL:
+            op_str = "not_equal";
+            break;
     }
     fprintf(yyout, "%*cBinaryExpr\top: %s\n", level, ' ', op_str.c_str());
     expr1->output(level + 4);
     expr2->output(level + 4);
+}
+
+void preSingleExpr::output(int level)
+{
+    std::string op_str;
+    switch(op)
+    {
+        case NOT:
+            op_str = "not";
+            break;
+        case AADD:
+            op_str = "prefix_self_add";
+            break;
+        case SSUB:
+            op_str = "prefix_self_sub";
+            break;
+    }
+    fprintf(yyout, "%*cprefix_SingleExpr\top: %s\n", level, ' ', op_str.c_str());
+    expr->output(level + 4);
+}
+
+void sufSingleExpr::output(int level)
+{
+    std::string op_str;
+    switch(op)
+    {
+        case AADD:
+            op_str = "suffix_self_add";
+            break;
+        case SSUB:
+            op_str = "suffix_self_sub";
+            break;
+    }
+    fprintf(yyout, "%*csuffix_SingleExpr\top: %s\n", level, ' ', op_str.c_str());
+    expr->output(level + 4);
 }
 
 void Constant::output(int level)
@@ -74,9 +121,10 @@ void Id::output(int level)
     int scope;
     name = symbolEntry->toStr();
     type = symbolEntry->getType()->toStr();
+    bool isconst = symbolEntry->getType()->is_const();
     scope = dynamic_cast<IdentifierSymbolEntry*>(symbolEntry)->getScope();
-    fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: %s\n", level, ' ',
-            name.c_str(), scope, type.c_str());
+    fprintf(yyout, "%*cId\tname: %s\tscope: %d\ttype: %s\tis_const:%d\n", level, ' ',
+            name.c_str(), scope, type.c_str(), isconst);
 }
 
 void CompoundStmt::output(int level)
@@ -95,9 +143,14 @@ void SeqNode::output(int level)
 void DeclStmt::output(int level)
 {
     fprintf(yyout, "%*cDeclStmt\n", level, ' ');
-    id->output(level + 4);
-    if(init!=nullptr){
-        init->output(level+4);
+    std::map<Id*, ExprNode*>::iterator it=idlist.begin();
+    while(it!=idlist.end()){
+        it->first->output(level + 4);
+        if(it->second!=nullptr){
+            // cout<<"hi"<<endl;
+            it->second->output(level+4);
+        }
+        it++;
     }
 }
 

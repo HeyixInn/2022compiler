@@ -2,6 +2,7 @@
 #define __AST_H__
 
 #include <fstream>
+#include <map>
 //全是结点。。一个符号对应一个结点？
 
 class SymbolEntry;
@@ -31,8 +32,30 @@ private:
     int op;
     ExprNode *expr1, *expr2;
 public:
-    enum {ADD, SUB, MUL, DIV, MOD, AND, OR, LESS, MORE, EQUAL};
+    enum {ADD, SUB, MUL, DIV, MOD, AND, OR, LESS, MORE, EQUAL, MORE_E, LESS_E, NOT_EQUAL};
     BinaryExpr(SymbolEntry *se, int op, ExprNode*expr1, ExprNode*expr2) : ExprNode(se), op(op), expr1(expr1), expr2(expr2){};
+    void output(int level);
+};
+
+class preSingleExpr : public ExprNode
+{
+private:
+    int op;
+    ExprNode *expr;
+public:
+    enum {NOT, AADD, SSUB};
+    preSingleExpr(SymbolEntry *se, int op, ExprNode*expr) : ExprNode(se), op(op), expr(expr){};
+    void output(int level);
+};
+
+class sufSingleExpr : public ExprNode
+{
+private:
+    ExprNode *expr;
+    int op;    
+public:
+    enum {AADD, SSUB};
+    sufSingleExpr(SymbolEntry *se, ExprNode*expr, int op) : ExprNode(se), expr(expr), op(op){};
     void output(int level);
 };
 
@@ -74,10 +97,20 @@ public:
 class DeclStmt : public StmtNode
 {
 private:
-    Id *id;
-    ExprNode *init;
+    // Id *id;
+    // ExprNode *init;
+    std::map<Id*, ExprNode*> idlist;
 public:
-    DeclStmt(Id *id, ExprNode *init=nullptr) : id(id), init(init){};
+    DeclStmt(){//std::map<std::string, ExprNode*> idlist
+        // std::map<std::string, ExprNode*>::iterator it=idlist.begin();
+        // while(it!=idlist.end()){
+        //     this->idlist[it->first]=it->second;
+        //     it++;
+        // }
+    };
+    void insert(Id* id, ExprNode* init=nullptr){
+        this->idlist[id]=init;
+    }
     void output(int level);
 };
 

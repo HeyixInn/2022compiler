@@ -1,31 +1,27 @@
-//comment
-
-/*
-comment2
-*/
-int f(){
-	int a;
-	a = 0;
-	return a;
-}
-
-int main(){
-	int _testid=5+5;
-	_testid = 1*3+2*6;
+int main()
+{
     int i;
-	if(_testid<0){
-		int _testid=3;
-		int _testid2;
-		_testid2=_testid2+1;
-	}
-    while(_testid<0)
-	{
-		int a;
-	}
-    for(i=0;i<100;i=i+1)
-	{
-		_testid=2;
-	}
-	int b;
-	return 0;
+    int j;
+    int k;
+    int t;
+    i=0;j=0;k=0;
+    while(i<21)
+    {
+        while(j<101-i)
+        {
+            k=100-i-j;
+            if(5*i+1*j+k/2==100)
+            {
+                putint(i);
+                putint(j);
+                putint(k);
+                t=10;
+                putch(t);
+            }
+            j=j+1;
+        }
+        i=i+1;
+    }
+
+    return 0;
 }

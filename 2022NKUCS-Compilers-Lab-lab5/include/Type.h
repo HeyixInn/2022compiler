@@ -13,6 +13,7 @@ public:
     Type(int kind) : kind(kind) {};
     virtual ~Type() {};
     virtual std::string toStr() = 0;
+    virtual bool is_const() = 0;
     bool isInt() const {return kind == INT;};
     bool isVoid() const {return kind == VOID;};
     bool isFunc() const {return kind == FUNC;};
@@ -22,9 +23,13 @@ class IntType : public Type
 {
 private:
     int size;
+    bool isconst;
 public:
-    IntType(int size) : Type(Type::INT), size(size){};
+    IntType(int size, bool isconst=false) : Type(Type::INT), size(size){
+        this->isconst=isconst;
+    };
     std::string toStr();
+    bool is_const();
 };
 
 class VoidType : public Type
@@ -32,6 +37,7 @@ class VoidType : public Type
 public:
     VoidType() : Type(Type::VOID){};
     std::string toStr();
+    bool is_const();
 };
 
 class FunctionType : public Type
@@ -43,6 +49,7 @@ public:
     FunctionType(Type* returnType, std::vector<Type*> paramsType) : 
     Type(Type::FUNC), returnType(returnType), paramsType(paramsType){};
     std::string toStr();
+    bool is_const();
 };
 
 class TypeSystem

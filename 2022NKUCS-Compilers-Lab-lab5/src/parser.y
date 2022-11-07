@@ -1,10 +1,14 @@
 %code top{
     #include <iostream>
     #include <assert.h>
+    #include <map>
     #include "parser.h"
+    using namespace std;
     extern Ast ast;
     int yylex();
     int yyerror( char const * );
+
+    map<std::string, ExprNode*> idlist;
 }
 
 %code requires {
@@ -26,13 +30,16 @@
 %token <itype> INTEGER
 %token IF ELSE WHILE FOR
 %token INT VOID
-%token LPAREN RPAREN LBRACE RBRACE SEMICOLON
-%token MUL DIV MOD ADD SUB OR AND LESS MORE EQUAL ASSIGN
-%token RETURN
+%token LPAREN RPAREN LBRACE RBRACE SEMICOLON COMMA
+%token NOT AADD SSUB
+%token MUL DIV MOD ADD SUB OR AND LESS MORE EQUAL MORE_E LESS_E NOT_EQUAL ASSIGN
+%token RETURN CONST
 
-%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt WhileStmt ForStmt AssignExpr ReturnStmt DeclStmt FuncDef
-%nterm <exprtype> Exp MulExp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp
+
+%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt WhileStmt ForStmt AssignExpr ReturnStmt DeclStmt FuncDef FuncCall
+%nterm <exprtype> Exp MulExp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp NotExp preSinExp sufSinExp
 %nterm <type> Type
+%nterm IDList
 
 %precedence THEN
 %precedence ELSE
@@ -58,6 +65,7 @@ Stmt
     | ReturnStmt {$$=$1;}
     | DeclStmt {$$=$1;}
     | FuncDef {$$=$1;}
+    | FuncCall {$$=$1;}
     ;
 LVal
     : ID {
@@ -128,6 +136,20 @@ Cond
     :
     LOrExp {$$ = $1;}
     ;
+NotExp
+    :
+    NOT LVal
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new preSingleExpr(se, preSingleExpr::NOT, $2);
+    }
+    |
+    NOT LPAREN Exp RPAREN
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new preSingleExpr(se, preSingleExpr::NOT, $3);
+    }
+    ;
 PrimaryExp
     :
     LVal {
@@ -137,10 +159,47 @@ PrimaryExp
         SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::intType, $1);
         $$ = new Constant(se);
     }
+    |
+    NotExp {
+        $$ = $1;
+    }
     ;
+preSinExp
+    :
+    PrimaryExp {
+        $$ = $1;
+    }
+    |
+    AADD preSinExp {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new preSingleExpr(se, preSingleExpr::AADD, $2);
+    }
+    | 
+    SSUB preSinExp{
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new preSingleExpr(se, preSingleExpr::SSUB, $2);
+    }
+    ;
+sufSinExp
+    :
+    preSinExp{
+        $$ = $1;
+    }
+    |
+    sufSinExp AADD {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new sufSingleExpr(se, $1, sufSingleExpr::AADD);
+    }
+    | 
+    sufSinExp SSUB {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new sufSingleExpr(se, $1, sufSingleExpr::SSUB);
+    }
+    ;
+    
 MulExp
     :
-    PrimaryExp {$$ = $1;}
+    sufSinExp {$$ = $1;}
     |
     MulExp MUL PrimaryExp
     {
@@ -197,6 +256,24 @@ RelExp
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::EQUAL, $1, $3);
     }
+    |
+    RelExp LESS_E AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::LESS_E, $1, $3);
+    }
+    |
+    RelExp MORE_E AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::MORE_E, $1, $3);
+    }
+    |
+    RelExp NOT_EQUAL AddExp
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new BinaryExpr(se, BinaryExpr::NOT_EQUAL, $1, $3);
+    }
     ;
 LAndExp
     :
@@ -225,15 +302,49 @@ Type
     | VOID {
         $$ = TypeSystem::voidType;
     }
+    | CONST Type {
+        cout<<"ha"<<endl;
+        $$ = new IntType(4, 1);
+    }
+    ;
+IDList
+    :
+    ID COMMA{
+        idlist[$1]=nullptr;
+    }
+    |
+    ID ASSIGN Exp COMMA{
+        idlist[$1]=$3;
+    }
+    |
+    IDList ID COMMA{
+        idlist[$2]=nullptr;
+    }
+    |
+    IDList ID ASSIGN Exp COMMA{
+        idlist[$2]=$4;
+    }
+    |
+    IDList ID{
+        //结束
+        idlist[$2]=nullptr;
+    }
+    |
+    IDList ID ASSIGN Exp{
+        //结束
+        idlist[$2]=$4;
+    }
     ;
 DeclStmt
     :
     Type ID SEMICOLON {
-        //printf("hi");
+        cout<<"hhh"<<endl;
         SymbolEntry *se;
         se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
         identifiers->install($2, se);
-        $$ = new DeclStmt(new Id(se));
+        DeclStmt* tmp = new DeclStmt();
+        tmp->insert(new Id(se));
+        $$ = tmp; 
         delete []$2;
     }
     |Type ID ASSIGN Exp SEMICOLON{
@@ -241,10 +352,33 @@ DeclStmt
         SymbolEntry *se;
         se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
         identifiers->install($2, se);
-        $$ = new DeclStmt(new Id(se),$4);
+        DeclStmt* tmp = new DeclStmt();
+        tmp->insert(new Id(se),$4);
+        $$ = tmp;       
         delete []$2;
     }
+    |
+    Type IDList SEMICOLON {
+        printf("hi");
+        std::map <std::string, ExprNode*>::iterator it=idlist.begin();
+        DeclStmt* tmp = new DeclStmt();
+        SymbolEntry *se;
+        while(it!=idlist.end()){
+            cout<<it->first<<endl;
+            se = new IdentifierSymbolEntry($1, it->first, identifiers->getLevel());
+            identifiers->install(it->first, se);
+            tmp->insert(new Id(se), it->second);
+            it++;
+        }
+        $$ = tmp;
+        idlist.clear();//存完以后清空
+        //delete []$2;
+    }
     ;
+ParamDefs:
+    ID{
+        
+    }
 FuncDef
     :
     Type ID {
@@ -267,6 +401,31 @@ FuncDef
         delete []$2;
     }
     ;
+Params:
+    ID{
+
+    }
+    |
+    Params COMMA PARAM{
+
+    }
+    ;
+FuncCall
+    :
+    ID LPAREN Params RPAREN
+    BlockStmt
+    {
+        SymbolEntry *se;
+        se = identifiers->lookup($1);
+        assert(se != nullptr);
+        $$ = new FunctionDef(se, $5);
+        SymbolTable *top = identifiers;
+        identifiers = identifiers->getPrev();
+        delete top;
+        delete []$1;
+    }
+    ;
+
 %%
 
 int yyerror(char const* message)

@@ -77,7 +77,11 @@ commentend "*/"
         DEBUG_FOR_LAB4("RETURN\treturn");
     return RETURN;
 }
-
+"const" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("CONST\treturn");
+    return CONST;
+}
 
 
 "+" {
@@ -130,13 +134,50 @@ commentend "*/"
         DEBUG_FOR_LAB4("EQUAL\t<");
     return EQUAL;
 }
+"!=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("NOT_EQUAL\t<");
+    return NOT_EQUAL;
+}
+"<=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("LESS_E\t<");
+    return LESS_E;
+}
+">=" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("MORE_E\t<");
+    return MORE_E;
+}
+
 "=" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ASSIGN\t=");
     return ASSIGN;
 }
 
+"!" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("NOT\t=");
+    return NOT;
+}
+"++" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("AADD\t=");
+    return AADD;
+}
+"--" {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("SSUB\t=");
+    return SSUB;
+}
 
+
+"," {
+    if(dump_tokens)
+        DEBUG_FOR_LAB4("COMMA\t;");
+    return COMMA;
+}
 
 ";" {
     if(dump_tokens)

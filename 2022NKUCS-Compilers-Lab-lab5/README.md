@@ -65,5 +65,11 @@ EOL must do nothing!!
 if 语句
 while 语句
 int a=0;初始化并赋值语句
+补齐了关系运算符
+not语句
+class SingleExpr
 
 初始化语句 InitStmt
+
+用idlist解决一次性多声明和赋值
+加了is_const
