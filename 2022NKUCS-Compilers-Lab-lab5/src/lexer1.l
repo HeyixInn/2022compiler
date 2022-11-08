@@ -18,13 +18,7 @@
     }
 %}
 
-ADD "+"
-SUB "-"
 DECIMIAL ([1-9][0-9]*|0)
-OCTAL 0([1-7][0-7]*|0)
-HEX (0x|0X)([1-9a-fA-F][0-9a-fA-F]*|0)
-INTEGER ({DECIMIAL}|{OCTAL}|{HEX})((e|E)(\+|-)?({DECIMIAL}|{OCTAL}|{HEX}))?
-FLOAT {DECIMIAL}+(.{DECIMIAL}+)?((e|E)(\+|-)?{DECIMIAL}+)?
 ID [[:alpha:]_][[:alpha:][:digit:]_]*
 EOL (\r\n|\n|\r)
 WHITE [\t ]
@@ -90,12 +84,12 @@ commentend "*/"
 }
 
 
-{ADD} {
+"+" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("ADD\t+");
     return ADD;
 }
-{SUB} {
+"-" {
     if(dump_tokens)
         DEBUG_FOR_LAB4("SUB\t+");
     return SUB;
@@ -211,59 +205,8 @@ commentend "*/"
         DEBUG_FOR_LAB4("RBRACE\t}");
     return RBRACE;
 }
-"getint" {
-    #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("ID", "getint");
-        offset+=strlen(yytext);
-    #else
-        char *lexeme = new char[strlen(yytext) + 1];
-        strcpy(lexeme, yytext);
-        yylval.strtype = lexeme;
-        Type* funcType = new FunctionType(TypeSystem::intType, {});//返回类型int，无参数
-        SymbolTable* globalTable;    //全域符号表
-        for(globalTable = identifiers;globalTable->getPrev();globalTable = globalTable->getPrev()); //全域符号表
-        SymbolEntry* entry = new IdentifierSymbolEntry(funcType, yytext, 0);//作用域GLOBAL(0)
-        globalTable->install(yytext, entry);
-        return ID;
-    #endif
-}
-"putint" {
-    #ifdef ONLY_FOR_LEX
-        DEBUG_FOR_LAB4("ID", "putint");
-        offset+=strlen(yytext);
-    #else
-        char *lexeme = new char[strlen(yytext) + 1];
-        strcpy(lexeme, yytext);
-        yylval.strtype = lexeme;
-        std::vector<Type*> vec; //形参类型表
-        vec.push_back(TypeSystem::intType);
-        Type* funcType = new FunctionType(TypeSystem::voidType, vec);//返回类型void，参数表[int]
-        SymbolTable* globalTable;    //全域符号表
-        for(globalTable = identifiers;globalTable->getPrev();globalTable = globalTable->getPrev()); //全域符号表
-        SymbolEntry* entry = new IdentifierSymbolEntry(funcType, yytext, 0);//作用域GLOBAL(0)
-        globalTable->install(yytext, entry);
-        return ID;
-    #endif
-}
-"putch" { 
- #ifdef ONLY_FOR_LEX 
- DEBUG_FOR_LAB4("ID", "putch"); 
- offset+=strlen(yytext); 
- #else 
- char *lexeme = new char[strlen(yytext) + 1]; 
- strcpy(lexeme, yytext); 
- yylval.strtype = lexeme; 
- std::vector<Type*> vec; //形参类型表 
- vec.push_back(TypeSystem::intType); 
- Type* funcType = new FunctionType(TypeSystem::voidType, vec);//返回类型void，参数表[int] 
- SymbolTable* globalTable; //全域符号表 
- for(globalTable = identifiers;globalTable->getPrev();globalTable = globalTable->getPrev()); //全域符号表 
- SymbolEntry* entry = new IdentifierSymbolEntry(funcType, yytext, 0);//作用域GLOBAL(0) 
- globalTable->install(yytext, entry); 
- return ID; 
- #endif 
- } 
-{INTEGER} {
+
+{DECIMIAL} {
     if(dump_tokens)
         DEBUG_FOR_LAB4(yytext);
     yylval.itype = atoi(yytext);

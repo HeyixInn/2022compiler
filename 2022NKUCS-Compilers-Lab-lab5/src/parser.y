@@ -2,6 +2,7 @@
     #include <iostream>
     #include <assert.h>
     #include <map>
+    #include <vector>
     #include "parser.h"
     using namespace std;
     extern Ast ast;
@@ -9,6 +10,9 @@
     int yyerror( char const * );
 
     map<std::string, ExprNode*> idlist;
+    std::vector<Type*> paramdefs;
+    std::vector<std::string> paramsymbols;
+    std::vector<IdentifierSymbolEntry*> paramcalls;
 }
 
 %code requires {
@@ -36,8 +40,8 @@
 %token RETURN CONST
 
 
-%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt WhileStmt ForStmt AssignExpr ReturnStmt DeclStmt FuncDef FuncCall
-%nterm <exprtype> Exp MulExp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp NotExp preSinExp sufSinExp
+%nterm <stmttype> Stmts Stmt AssignStmt BlockStmt IfStmt WhileStmt ForStmt AssignExpr ReturnStmt DeclStmt ExprStmt FuncDef
+%nterm <exprtype> Exp MulExp AddExp Cond LOrExp PrimaryExp LVal RelExp LAndExp NotExp preSinExp sufSinExp FuncCall
 %nterm <type> Type
 %nterm IDList
 
@@ -65,8 +69,10 @@ Stmt
     | ReturnStmt {$$=$1;}
     | DeclStmt {$$=$1;}
     | FuncDef {$$=$1;}
-    | FuncCall {$$=$1;}
+    | ExprStmt{$$ = $1;}
+    | SEMICOLON {$$ = new EmptyStmt();}
     ;
+
 LVal
     : ID {
         SymbolEntry *se;
@@ -81,10 +87,16 @@ LVal
         delete []$1;
     }
     ;
+ExprStmt
+    :
+    Exp SEMICOLON{
+        $$ = new ExprStmt($1);
+    }
+    ;
 AssignStmt
     :
-    LVal ASSIGN Exp SEMICOLON {
-        $$ = new AssignStmt($1, $3);
+    AssignExpr SEMICOLON {
+        $$ = $1;
     }
     ;
 AssignExpr
@@ -124,13 +136,17 @@ ForStmt
     ;
 ReturnStmt
     :
+    RETURN SEMICOLON{
+        $$ = new ReturnStmt();
+    }
+    |
     RETURN Exp SEMICOLON{
         $$ = new ReturnStmt($2);
     }
     ;
 Exp
     :
-    AddExp {$$ = $1;}
+    LOrExp {$$ = $1;}
     ;
 Cond
     :
@@ -139,6 +155,12 @@ Cond
 NotExp
     :
     NOT LVal
+    {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new preSingleExpr(se, preSingleExpr::NOT, $2);
+    }
+    |
+    NOT NotExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new preSingleExpr(se, preSingleExpr::NOT, $2);
@@ -155,15 +177,25 @@ PrimaryExp
     LVal {
         $$ = $1;
     }
-    | INTEGER {
+    | 
+    INTEGER {
         SymbolEntry *se = new ConstantSymbolEntry(TypeSystem::intType, $1);
         $$ = new Constant(se);
     }
     |
-    NotExp {
+    LPAREN LOrExp RPAREN {
+        $$ = $2;
+    }
+    |
+    FuncCall {
         $$ = $1;
     }
+    |
+    NotExp {
+        $$ = $1;
+    } 
     ;
+
 preSinExp
     :
     PrimaryExp {
@@ -179,7 +211,18 @@ preSinExp
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new preSingleExpr(se, preSingleExpr::SSUB, $2);
     }
+    |
+    ADD preSinExp {
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new preSingleExpr(se, preSingleExpr::ADD, $2);
+    }
+    |
+    SUB preSinExp{
+        SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
+        $$ = new preSingleExpr(se, preSingleExpr::SUB, $2);
+    }
     ;
+
 sufSinExp
     :
     preSinExp{
@@ -194,26 +237,26 @@ sufSinExp
     sufSinExp SSUB {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new sufSingleExpr(se, $1, sufSingleExpr::SSUB);
-    }
+    }  
     ;
     
 MulExp
     :
     sufSinExp {$$ = $1;}
     |
-    MulExp MUL PrimaryExp
+    MulExp MUL preSinExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::MUL, $1, $3);
     }
     |
-    MulExp DIV PrimaryExp
+    MulExp DIV preSinExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::DIV, $1, $3);
     }
     |
-    MulExp MOD PrimaryExp
+    MulExp MOD preSinExp
     {
         SymbolEntry *se = new TemporarySymbolEntry(TypeSystem::intType, SymbolTable::getLabel());
         $$ = new BinaryExpr(se, BinaryExpr::MOD, $1, $3);
@@ -303,7 +346,7 @@ Type
         $$ = TypeSystem::voidType;
     }
     | CONST Type {
-        cout<<"ha"<<endl;
+        // cout<<"ha"<<endl;
         $$ = new IntType(4, 1);
     }
     ;
@@ -338,7 +381,7 @@ IDList
 DeclStmt
     :
     Type ID SEMICOLON {
-        cout<<"hhh"<<endl;
+        // cout<<"hhh"<<endl;
         SymbolEntry *se;
         se = new IdentifierSymbolEntry($1, $2, identifiers->getLevel());
         identifiers->install($2, se);
@@ -359,12 +402,11 @@ DeclStmt
     }
     |
     Type IDList SEMICOLON {
-        printf("hi");
         std::map <std::string, ExprNode*>::iterator it=idlist.begin();
         DeclStmt* tmp = new DeclStmt();
         SymbolEntry *se;
         while(it!=idlist.end()){
-            cout<<it->first<<endl;
+            // cout<<it->first<<endl;
             se = new IdentifierSymbolEntry($1, it->first, identifiers->getLevel());
             identifiers->install(it->first, se);
             tmp->insert(new Id(se), it->second);
@@ -376,19 +418,69 @@ DeclStmt
     }
     ;
 ParamDefs:
-    ID{
-        
+    Type ID{
+        paramdefs.push_back($1);
+        paramsymbols.push_back($2);
     }
+    |
+    ParamDefs COMMA Type ID{
+        paramdefs.push_back($3);
+        paramsymbols.push_back($4);
+    }
+    ;
 FuncDef
     :
-    Type ID {
+    Type ID 
+    LPAREN ParamDefs RPAREN
+    {
         Type *funcType;
-        funcType = new FunctionType($1,{});
+        //std::vector<Type*> params;
+        //params.swap(paramdefs);
+        funcType = new FunctionType($1,paramdefs);
         SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel());
         identifiers->install($2, se);
         identifiers = new SymbolTable(identifiers);
+
+        for(int i=0;i<int(paramsymbols.size());i++){
+            // cout<<paramsymbols[i]<<endl;
+            SymbolEntry *sesym = new IdentifierSymbolEntry(paramdefs[i], paramsymbols[i], identifiers->getLevel());
+            identifiers->install(paramsymbols[i], sesym);
+        }
     }
+    BlockStmt
+    {
+        SymbolEntry *se;
+        se = identifiers->lookup($2);
+        assert(se != nullptr);
+        $$ = new FunctionDef(se, $7);
+        SymbolTable *top = identifiers;
+        identifiers = identifiers->getPrev();
+
+        std::vector<Type*> params;
+        params.swap(paramdefs);
+        std::vector<std::string> params1;
+        params1.swap(paramsymbols);
+
+        delete top;
+        delete []$2;
+    }
+    |
+    Type ID 
     LPAREN RPAREN
+    {
+        Type *funcType;
+        std::vector<Type*> params;
+        funcType = new FunctionType($1,params);
+        SymbolEntry *se = new IdentifierSymbolEntry(funcType, $2, identifiers->getLevel());
+        identifiers->install($2, se);
+        identifiers = new SymbolTable(identifiers);
+
+        for(int i=0;i<int(paramsymbols.size());i++){
+            // cout<<paramsymbols[i]<<endl;
+            SymbolEntry *sesym = new IdentifierSymbolEntry(paramdefs[i], paramsymbols[i], identifiers->getLevel());
+            identifiers->install(paramsymbols[i], sesym);
+        }
+    }
     BlockStmt
     {
         SymbolEntry *se;
@@ -403,26 +495,41 @@ FuncDef
     ;
 Params:
     ID{
-
+        SymbolEntry *se;
+        se = identifiers->lookup($1);
+        assert(se != nullptr);
+        paramcalls.push_back((IdentifierSymbolEntry*)$1);
     }
     |
-    Params COMMA PARAM{
-
+    Params COMMA ID{
+        SymbolEntry *se;
+        se = identifiers->lookup($3);
+        assert(se != nullptr);
+        paramcalls.push_back((IdentifierSymbolEntry*)$3);
     }
     ;
 FuncCall
     :
     ID LPAREN Params RPAREN
-    BlockStmt
     {
+        std::vector<IdentifierSymbolEntry*> params;
+        params.swap(paramcalls);
+        
         SymbolEntry *se;
         se = identifiers->lookup($1);
-        assert(se != nullptr);
-        $$ = new FunctionDef(se, $5);
-        SymbolTable *top = identifiers;
-        identifiers = identifiers->getPrev();
-        delete top;
-        delete []$1;
+        //assert(se != nullptr);
+        $$ = new FunctionCall(se, params);
+    }
+    |
+    ID LPAREN RPAREN
+    {
+        std::vector<IdentifierSymbolEntry*> params;
+        //params.swap(paramcalls);
+
+        SymbolEntry *se;
+        se = identifiers->lookup($1);
+        //assert(se != nullptr);
+        $$ = new FunctionCall(se, params);
     }
     ;
 

@@ -85,6 +85,12 @@ void preSingleExpr::output(int level)
         case SSUB:
             op_str = "prefix_self_sub";
             break;
+        case ADD:
+            op_str = "add";
+            break;
+        case SUB:
+            op_str = "sub";
+            break;
     }
     fprintf(yyout, "%*cprefix_SingleExpr\top: %s\n", level, ' ', op_str.c_str());
     expr->output(level + 4);
@@ -187,7 +193,17 @@ void ForStmt::output(int level)
 void ReturnStmt::output(int level)
 {
     fprintf(yyout, "%*cReturnStmt\n", level, ' ');
-    retValue->output(level + 4);
+    if(!retValue){
+        retValue->output(level + 4);
+    }
+}
+
+void ExprStmt::output(int level)
+{
+    fprintf(yyout, "%*cExprStmt\n", level, ' ');
+    if(!exp){
+        exp->output(level + 4);
+    }
 }
 
 void AssignStmt::output(int level)
@@ -205,4 +221,37 @@ void FunctionDef::output(int level)
     fprintf(yyout, "%*cFunctionDefine function name: %s, type: %s\n", level, ' ', 
             name.c_str(), type.c_str());
     stmt->output(level + 4);
+}
+
+void FunctionCall::output(int level)
+{
+    std::string name, type;
+    name = se->toStr();
+    type = se->getType()->toStr();
+    fprintf(yyout, "%*cFunctionCall function name: %s, type: %s, params_num: %d\n", level, ' ', 
+            name.c_str(), type.c_str(), int(params.size()));
+    //vector<SymbolEntry*>::iterator it=params.begin();
+    if(params.empty()){
+        // cout<<"hi"<<endl;
+        return;
+    }
+    // cout<<int(params.size())<<endl;
+    // for(int i=1;i<=int(params.size());i++){
+        // name = params.at(i-1)->toStr();
+        // type = params.at(i-1)->getType()->toStr();
+        // cout<<name<<endl;
+        // fprintf(yyout, "%*cparam%d: name: %s, type: %s, \n", level, ' ', i, 
+        //     name.c_str(), type.c_str());
+        // cout<< typeid(se).name()<<endl;
+    // }
+}
+
+void FunctionCallStmt::output(int level)
+{
+    func->output(level+4);
+}
+
+void EmptyStmt::output(int level)
+{
+    fprintf(yyout, "%*cEmptyStmt\n", level, ' ');
 }

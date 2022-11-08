@@ -3,9 +3,12 @@
 
 #include <fstream>
 #include <map>
+#include <vector>
+using namespace std;
 //全是结点。。一个符号对应一个结点？
 
 class SymbolEntry;
+class IdentifierSymbolEntry;
 
 class Node
 {
@@ -43,7 +46,7 @@ private:
     int op;
     ExprNode *expr;
 public:
-    enum {NOT, AADD, SSUB};
+    enum {NOT, AADD, SSUB, ADD, SUB};
     preSingleExpr(SymbolEntry *se, int op, ExprNode*expr) : ExprNode(se), op(op), expr(expr){};
     void output(int level);
 };
@@ -172,7 +175,16 @@ class ReturnStmt : public StmtNode
 private:
     ExprNode *retValue;
 public:
-    ReturnStmt(ExprNode*retValue) : retValue(retValue) {};
+    ReturnStmt(ExprNode*retValue=nullptr) : retValue(retValue) {};
+    void output(int level);
+};
+
+class ExprStmt : public StmtNode
+{
+private:
+    ExprNode *exp;
+public:
+    ExprStmt(ExprNode*exp=nullptr) : exp(exp) {};
     void output(int level);
 };
 
@@ -186,6 +198,34 @@ public:
     void output(int level);
 };
 
+class FunctionCallStmt : public StmtNode
+{
+private:
+    ExprNode* func;
+public:
+    FunctionCallStmt(ExprNode* func) : func(func) {};
+    void output(int level);
+};
+
+class FunctionCall : public ExprNode
+{
+private:
+    SymbolEntry *se;
+    vector<IdentifierSymbolEntry*> params;
+public:
+    FunctionCall(SymbolEntry *se, vector<IdentifierSymbolEntry*> params) : ExprNode(se), se(se) {
+        this->params.assign(params.begin(),params.end());
+    };
+    void output(int level);
+};
+
+class EmptyStmt : public StmtNode
+{
+public:
+    EmptyStmt(){};
+    void output(int level);
+};
+
 class Ast
 {
 private:
@@ -195,5 +235,6 @@ public:
     void setRoot(Node*n) {root = n;}
     void output();
 };
+
 
 #endif
