@@ -10,5 +10,5 @@ lab7_final 目标代码生成
 
 希冀平台评测 98
 
-5 unpass in total
+5 unpasses in total
 
